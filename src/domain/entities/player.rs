@@ -1,7 +1,7 @@
 use std::fmt;
 
-use crate::domain::entities::card::Card;
-use crate::domain::value_objects::{CardId, Health, Mana, PlayerId};
+use super::entities::card::Card;
+use super::value_objects::{CardId, Health, Mana, PlayerId};
 
 pub const MAX_HAND_SIZE: usize = 10;
 pub const MAX_DECK_SIZE: usize = 30;
