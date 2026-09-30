@@ -1,6 +1,3 @@
-// This file was moved from src/domain/value_objects/health.rs
-// It is now part of the workspace crate.
-
 use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -35,12 +32,13 @@ impl Health {
     }
 
     pub fn heal(&mut self, amount: u32) -> Result<u32, HealthError> {
-        let new_value = self.0.saturating_add(amount);
-        if new_value > Self::MAX_HEALTH {
-            return Err(HealthError::AboveMaxHealth { max: Self::MAX_HEALTH, requested: new_value });
+        if self.is_dead() {
+            return Err(HealthError::AlreadyDead);
         }
-        self.0 = new_value;
-        Ok(amount)
+        let capped_value = self.0.saturating_add(amount).min(Self::MAX_HEALTH);
+        let restored_amount = capped_value - self.0;
+        self.0 = capped_value;
+        Ok(restored_amount)
     }
 
     pub fn set(&mut self, value: u32) -> Result<(), HealthError> {
@@ -48,7 +46,10 @@ impl Health {
             return Err(HealthError::CannotSetToZero);
         }
         if value > Self::MAX_HEALTH {
-            return Err(HealthError::AboveMaxHealth { max: Self::MAX_HEALTH, requested: value });
+            return Err(HealthError::AboveMaxHealth {
+                max: Self::MAX_HEALTH,
+                requested: value,
+            });
         }
         self.0 = value;
         Ok(())
@@ -121,10 +122,57 @@ mod tests {
     }
 
     #[test]
-    fn test_health_heal_above_max() {
+    fn test_health_heal_caps_at_max() {
         let mut health = Health::new(29).unwrap();
-        let result = health.heal(2);
-        assert!(result.is_err());
+
+        let restored_amount = health.heal(2).unwrap();
+
+        assert_eq!(restored_amount, 1);
+    }
+
+    #[test]
+    fn test_health_heal_stops_at_max() {
+        let mut health = Health::new(29).unwrap();
+
+        health.heal(2).unwrap();
+
+        assert_eq!(health.current(), Health::MAX_HEALTH);
+    }
+
+    #[test]
+    fn test_health_heal_dead_is_rejected() {
+        let mut health = Health::new(0).unwrap();
+
+        let result = health.heal(5);
+
+        assert_eq!(result, Err(HealthError::AlreadyDead));
+    }
+
+    #[test]
+    fn test_health_take_damage_absorbs_only_remaining_health() {
+        let mut health = Health::new(4).unwrap();
+
+        let absorbed_damage = health.take_damage(9).unwrap();
+
+        assert_eq!(absorbed_damage, 4);
+    }
+
+    #[test]
+    fn test_health_take_damage_never_goes_below_zero() {
+        let mut health = Health::new(4).unwrap();
+
+        health.take_damage(9).unwrap();
+
+        assert_eq!(health.current(), 0);
+    }
+
+    #[test]
+    fn test_health_take_damage_when_dead_is_rejected() {
+        let mut health = Health::new(0).unwrap();
+
+        let result = health.take_damage(1);
+
+        assert_eq!(result, Err(HealthError::AlreadyDead));
     }
 
     #[test]
