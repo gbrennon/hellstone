@@ -55,6 +55,7 @@ fn translate_play_failure(error: PlayerError, card_id: u64) -> PlayCardError {
             available,
             requested,
         },
+        PlayerError::PlayerDead | PlayerError::Health(_) => PlayCardError::PlayerDead,
         _ => PlayCardError::CardNotInHand(card_id),
     }
 }

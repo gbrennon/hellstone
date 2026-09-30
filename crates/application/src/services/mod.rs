@@ -1,3 +1,4 @@
+pub mod create_player_request_validator;
 pub mod create_player_service;
 pub mod draw_card_service;
 pub mod play_card_service;

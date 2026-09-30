@@ -8,6 +8,7 @@ pub enum DrawCardError {
     PlayerNotFound(u64),
     DeckEmpty,
     HandFull,
+    PlayerDead,
     Repository(RepositoryError),
 }
 
@@ -17,6 +18,7 @@ impl fmt::Display for DrawCardError {
             Self::PlayerNotFound(id) => write!(formatter, "player {id} was not found"),
             Self::DeckEmpty => write!(formatter, "deck has no card left to draw"),
             Self::HandFull => write!(formatter, "hand cannot hold another card"),
+            Self::PlayerDead => write!(formatter, "a dead player cannot draw"),
             Self::Repository(error) => write!(formatter, "{error}"),
         }
     }
@@ -32,7 +34,13 @@ impl From<PlayerError> for DrawCardError {
     fn from(error: PlayerError) -> Self {
         match error {
             PlayerError::HandFull => Self::HandFull,
-            _ => Self::DeckEmpty,
+            PlayerError::DeckEmpty => Self::DeckEmpty,
+            PlayerError::CardNotInDeck(_) => Self::DeckEmpty,
+            PlayerError::CardNotInHand(_) => Self::HandFull,
+            PlayerError::DeckFull => Self::DeckEmpty,
+            PlayerError::PlayerDead => Self::PlayerDead,
+            PlayerError::InsufficientMana { .. } => Self::DeckEmpty,
+            PlayerError::Health(_) => Self::PlayerDead,
         }
     }
 }

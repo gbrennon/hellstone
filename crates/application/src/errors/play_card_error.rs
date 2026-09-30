@@ -7,6 +7,7 @@ pub enum PlayCardError {
     PlayerNotFound(u64),
     CardNotInHand(u64),
     InsufficientMana { available: u8, requested: u8 },
+    PlayerDead,
     Repository(RepositoryError),
 }
 
@@ -19,6 +20,7 @@ impl fmt::Display for PlayCardError {
                 available,
                 requested,
             } => write!(formatter, "needs {requested} mana, only {available} left"),
+            Self::PlayerDead => write!(formatter, "a dead player cannot play a card"),
             Self::Repository(error) => write!(formatter, "{error}"),
         }
     }

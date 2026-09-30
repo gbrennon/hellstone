@@ -4,13 +4,14 @@ use std::future::Future;
 ///
 /// Implementers must accept a request carrying only primitive data, perform the
 /// whole operation asynchronously, and answer either a primitive response or a
-/// typed error. Callers must not depend on any other entry point of the
-/// application layer.
+/// typed error. An implementer must depend on outbound ports only, never on
+/// another inbound port.
 pub trait UseCase {
     type Request;
     type Response;
     type Error;
 
+    /// Runs the whole operation described by `request`.
     fn execute(
         &self,
         request: Self::Request,

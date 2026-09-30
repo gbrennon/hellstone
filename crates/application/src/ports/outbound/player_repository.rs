@@ -10,23 +10,12 @@ use std::future::Future;
 /// carries the requested identifier, and reserve `RepositoryError` for failures
 /// of the storage mechanism itself.
 pub trait PlayerRepository: Send + Sync {
+    /// Answers the stored player carrying `id`, or `None` when none does.
     fn find_by_id(
         &self,
         id: &PlayerId,
     ) -> impl Future<Output = Result<Option<Player>, RepositoryError>> + Send;
 
+    /// Stores `player` so a later lookup by its identifier answers this state.
     fn save(&self, player: &Player) -> impl Future<Output = Result<(), RepositoryError>> + Send;
-}
-
-impl<Shared: PlayerRepository> PlayerRepository for std::sync::Arc<Shared> {
-    fn find_by_id(
-        &self,
-        id: &PlayerId,
-    ) -> impl Future<Output = Result<Option<Player>, RepositoryError>> + Send {
-        (**self).find_by_id(id)
-    }
-
-    fn save(&self, player: &Player) -> impl Future<Output = Result<(), RepositoryError>> + Send {
-        (**self).save(player)
-    }
 }
