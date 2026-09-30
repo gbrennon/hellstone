@@ -1,4 +1,9 @@
 [workspace]
+default-members = [
+    ".",
+    "crates/domain",
+    "crates/infrastructure",
+]
 members = [
     "crates/domain",
     "crates/infrastructure",
