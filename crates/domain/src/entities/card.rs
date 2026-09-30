@@ -1,7 +1,7 @@
+use crate::entities::card_blueprint::CardBlueprint;
 use crate::traits::{CanBeAttacked, HasAttackPower};
 use crate::value_objects::{Attack, CardId, CardRarity, CardType, Health};
 use std::fmt;
-
 
 #[derive(Debug, Clone)]
 pub struct Card {
@@ -20,57 +20,72 @@ pub struct Card {
 }
 
 impl Card {
-    pub fn new(
-        id: CardId,
-        name: &str,
-        mana_cost: u8,
-        card_type: CardType,
-        rarity: CardRarity,
-        base_attack: Option<Attack>,
-        base_health: Option<Health>,
-        description: &str,
-    ) -> Result<Self, CardError> {
-        if name.is_empty() {
+    pub fn new(blueprint: CardBlueprint) -> Result<Self, CardError> {
+        if blueprint.name().is_empty() {
             return Err(CardError::EmptyName);
         }
 
-        let spell_carries_combat_stats =
-            card_type == CardType::Spell && (base_attack.is_some() || base_health.is_some());
+        let base_attack = blueprint.base_attack();
+        let base_health = blueprint.base_health();
+        let spell_carries_combat_stats = blueprint.card_type() == &CardType::Spell
+            && (base_attack.is_some() || base_health.is_some());
         if spell_carries_combat_stats {
             return Err(CardError::SpellCannotHaveAttack);
         }
 
         Ok(Self {
-            id,
-            name: name.to_string(),
-            mana_cost,
-            card_type,
-            rarity,
+            id: *blueprint.id(),
+            name: blueprint.name().to_string(),
+            mana_cost: blueprint.mana_cost(),
+            card_type: *blueprint.card_type(),
+            rarity: *blueprint.rarity(),
             base_attack,
             base_health,
             current_attack: base_attack,
             current_health: base_health,
-            description: description.to_string(),
+            description: blueprint.description().to_string(),
             can_attack: true,
             is_sleeping: false,
         })
     }
 
-    // Getters
-    pub fn id(&self) -> &CardId { &self.id }
-    pub fn name(&self) -> &String { &self.name }
-    pub fn mana_cost(&self) -> u8 { self.mana_cost }
-    pub fn card_type(&self) -> &CardType { &self.card_type }
-    pub fn rarity(&self) -> &CardRarity { &self.rarity }
-    pub fn base_attack(&self) -> &Option<Attack> { &self.base_attack }
-    pub fn base_health(&self) -> &Option<Health> { &self.base_health }
-    pub fn current_attack(&self) -> &Option<Attack> { &self.current_attack }
-    pub fn current_health(&self) -> &Option<Health> { &self.current_health }
-    pub fn description(&self) -> &String { &self.description }
-    pub fn can_attack(&self) -> bool { self.can_attack }
-    pub fn is_sleeping(&self) -> bool { self.is_sleeping }
+    pub fn id(&self) -> &CardId {
+        &self.id
+    }
+    pub fn name(&self) -> &String {
+        &self.name
+    }
+    pub fn mana_cost(&self) -> u8 {
+        self.mana_cost
+    }
+    pub fn card_type(&self) -> &CardType {
+        &self.card_type
+    }
+    pub fn rarity(&self) -> &CardRarity {
+        &self.rarity
+    }
+    pub fn base_attack(&self) -> &Option<Attack> {
+        &self.base_attack
+    }
+    pub fn base_health(&self) -> &Option<Health> {
+        &self.base_health
+    }
+    pub fn current_attack(&self) -> &Option<Attack> {
+        &self.current_attack
+    }
+    pub fn current_health(&self) -> &Option<Health> {
+        &self.current_health
+    }
+    pub fn description(&self) -> &String {
+        &self.description
+    }
+    pub fn can_attack(&self) -> bool {
+        self.can_attack
+    }
+    pub fn is_sleeping(&self) -> bool {
+        self.is_sleeping
+    }
 
-    // Mutators
     pub fn set_current_attack(&mut self, attack: Attack) {
         self.current_attack = Some(attack);
     }
@@ -120,11 +135,10 @@ impl Eq for Card {}
 
 impl fmt::Display for Card {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} ({} | {} | {})",
-               self.name,
-               self.card_type,
-               self.rarity,
-               self.mana_cost
+        write!(
+            f,
+            "{} ({} | {} | {})",
+            self.name, self.card_type, self.rarity, self.mana_cost
         )
     }
 }
@@ -146,15 +160,17 @@ mod tests {
 
     fn create_minion() -> Card {
         Card::new(
-            CardId::new(1),
-            "Minion",
-            3,
-            CardType::Minion,
-            CardRarity::Common,
-            Some(Attack::new(2).unwrap()),
-            Some(Health::new(4).unwrap()),
-            "A test minion"
-        ).unwrap()
+            CardBlueprint::new(
+                CardId::new(1),
+                "Minion",
+                3,
+                CardType::Minion,
+                CardRarity::Common,
+            )
+            .with_combat_stats(Attack::new(2).unwrap(), Health::new(4).unwrap())
+            .described_as("A test minion"),
+        )
+        .unwrap()
     }
 
     #[test]
