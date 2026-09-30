@@ -2,6 +2,7 @@ use crate::dto::{DrawCardRequest, DrawCardResponse};
 use crate::errors::DrawCardError;
 use crate::ports::inbound::UseCase;
 use crate::ports::outbound::PlayerRepository;
+use domain::entities::PlayerError;
 use domain::value_objects::PlayerId;
 
 /// Moves the top card of a player's deck into their hand and persists it.
@@ -32,7 +33,7 @@ impl<Repository: PlayerRepository> UseCase for DrawCardService<Repository> {
             .await?
             .ok_or(DrawCardError::PlayerNotFound(request.player_id()))?;
 
-        let drawn_card = player.draw_card()?;
+        let drawn_card = player.draw_card().map_err(translate_draw_failure)?;
         self.players.save(&player).await?;
 
         Ok(DrawCardResponse::new(
@@ -41,5 +42,13 @@ impl<Repository: PlayerRepository> UseCase for DrawCardService<Repository> {
             player.hand().len(),
             player.deck().len(),
         ))
+    }
+}
+
+fn translate_draw_failure(error: PlayerError) -> DrawCardError {
+    match error {
+        PlayerError::HandFull => DrawCardError::HandFull,
+        PlayerError::PlayerDead | PlayerError::Health(_) => DrawCardError::PlayerDead,
+        _ => DrawCardError::DeckEmpty,
     }
 }

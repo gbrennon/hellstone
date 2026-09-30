@@ -1,5 +1,4 @@
 use crate::ports::outbound::RepositoryError;
-use domain::entities::PlayerError;
 use std::fmt;
 
 /// Reason a card could not be drawn.
@@ -27,20 +26,5 @@ impl fmt::Display for DrawCardError {
 impl From<RepositoryError> for DrawCardError {
     fn from(error: RepositoryError) -> Self {
         Self::Repository(error)
-    }
-}
-
-impl From<PlayerError> for DrawCardError {
-    fn from(error: PlayerError) -> Self {
-        match error {
-            PlayerError::HandFull => Self::HandFull,
-            PlayerError::DeckEmpty => Self::DeckEmpty,
-            PlayerError::CardNotInDeck(_) => Self::DeckEmpty,
-            PlayerError::CardNotInHand(_) => Self::HandFull,
-            PlayerError::DeckFull => Self::DeckEmpty,
-            PlayerError::PlayerDead => Self::PlayerDead,
-            PlayerError::InsufficientMana { .. } => Self::DeckEmpty,
-            PlayerError::Health(_) => Self::PlayerDead,
-        }
     }
 }
