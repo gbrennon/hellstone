@@ -1,15 +1,13 @@
-// This file defines all domain-level traits used throughout the application.
-
-// Re-export all individual trait modules
-pub mod identifiable;
-pub mod displayable;
-
-pub use identifiable::Identifiable;
 mod can_be_attacked;
-mod immune_to_damage;
+mod displayable;
 mod has_attack_power;
+mod identifiable;
+mod immune_to_damage;
+mod targetable;
 
 pub use can_be_attacked::CanBeAttacked;
-pub use immune_to_damage::ImmuneToDamage;
-pub use has_attack_power::HasAttackPower;
 pub use displayable::Displayable;
+pub use has_attack_power::HasAttackPower;
+pub use identifiable::Identifiable;
+pub use immune_to_damage::ImmuneToDamage;
+pub use targetable::Targetable;

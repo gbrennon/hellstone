@@ -1,7 +1,5 @@
-// This file defines common type aliases used throughout the domain layer.
-
 use crate::entities::card::Card;
-use crate::value_objects::{CardId, CardRarity, CardType, Health, Mana, PlayerId};
+use crate::value_objects::{CardId, PlayerId};
 
 /// A collection of cards representing a player's deck.
 pub type Deck = Vec<Card>;

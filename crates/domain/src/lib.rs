@@ -1,7 +1,7 @@
 pub mod entities;
-pub mod value_objects;
 pub mod repository;
-mod types;
 pub mod traits;
-pub use traits::{CanBeAttacked, HasAttackPower, ImmuneToDamage};
-mod shared_types;
+pub mod types;
+pub mod value_objects;
+
+pub use traits::{CanBeAttacked, Displayable, HasAttackPower, Identifiable, ImmuneToDamage, Targetable};
