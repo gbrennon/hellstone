@@ -1,5 +1,3 @@
-mod support;
-
 use application::dto::DrawCardRequest;
 use application::errors::DrawCardError;
 use application::ports::inbound::UseCase;
@@ -7,7 +5,19 @@ use application::services::DrawCardService;
 use domain::entities::Player;
 use domain::value_objects::PlayerId;
 use std::sync::Arc;
-use support::{block_on, InMemoryPlayerRepository, UnavailablePlayerRepository};
+#[path = "support/block_on.rs"]
+mod block_on;
+#[path = "support/in_memory_player_repository.rs"]
+mod in_memory_player_repository;
+#[path = "support/read_only_player_repository.rs"]
+mod read_only_player_repository;
+#[path = "support/unavailable_player_repository.rs"]
+mod unavailable_player_repository;
+
+use block_on::block_on;
+use in_memory_player_repository::InMemoryPlayerRepository;
+use read_only_player_repository::ReadOnlyPlayerRepository;
+use unavailable_player_repository::UnavailablePlayerRepository;
 
 fn player_with(deck_size: usize, hand_size: usize) -> Player {
     Player::new(PlayerId::new(7), "Jaina", deck_size, hand_size)
@@ -90,5 +100,17 @@ fn reports_storage_failure() {
     assert_eq!(
         result.unwrap_err(),
         DrawCardError::Repository(UnavailablePlayerRepository::failure())
+    );
+}
+
+#[test]
+fn reports_failure_to_persist_the_drawn_card() {
+    let service = DrawCardService::new(ReadOnlyPlayerRepository::holding(player_with(5, 2)));
+
+    let result = block_on(service.execute(DrawCardRequest::new(7)));
+
+    assert_eq!(
+        result.unwrap_err(),
+        DrawCardError::Repository(ReadOnlyPlayerRepository::failure())
     );
 }

@@ -1,5 +1,3 @@
-mod support;
-
 use application::dto::PlayCardRequest;
 use application::errors::PlayCardError;
 use application::ports::inbound::UseCase;
@@ -7,7 +5,22 @@ use application::services::PlayCardService;
 use domain::entities::Player;
 use domain::value_objects::PlayerId;
 use std::sync::Arc;
-use support::{block_on, InMemoryPlayerRepository, UnavailablePlayerRepository};
+#[path = "support/block_on.rs"]
+mod block_on;
+#[path = "support/drained_player.rs"]
+mod drained_player;
+#[path = "support/in_memory_player_repository.rs"]
+mod in_memory_player_repository;
+#[path = "support/read_only_player_repository.rs"]
+mod read_only_player_repository;
+#[path = "support/unavailable_player_repository.rs"]
+mod unavailable_player_repository;
+
+use block_on::block_on;
+use drained_player::drained_player_with_one_card;
+use in_memory_player_repository::InMemoryPlayerRepository;
+use read_only_player_repository::ReadOnlyPlayerRepository;
+use unavailable_player_repository::UnavailablePlayerRepository;
 
 fn player_holding_cards() -> Player {
     Player::new(PlayerId::new(7), "Jaina", 5, 2)
@@ -82,5 +95,36 @@ fn reports_storage_failure() {
     assert_eq!(
         result.unwrap_err(),
         PlayCardError::Repository(UnavailablePlayerRepository::failure())
+    );
+}
+
+#[test]
+fn reports_insufficient_mana() {
+    let player = drained_player_with_one_card(7);
+    let card_id = card_in_hand_of(&player);
+    let service = service_for(player);
+
+    let result = block_on(service.execute(PlayCardRequest::new(7, card_id)));
+
+    assert_eq!(
+        result.unwrap_err(),
+        PlayCardError::InsufficientMana {
+            available: 0,
+            requested: 1
+        }
+    );
+}
+
+#[test]
+fn reports_failure_to_persist_the_played_card() {
+    let player = player_holding_cards();
+    let card_id = card_in_hand_of(&player);
+    let service = PlayCardService::new(ReadOnlyPlayerRepository::holding(player));
+
+    let result = block_on(service.execute(PlayCardRequest::new(7, card_id)));
+
+    assert_eq!(
+        result.unwrap_err(),
+        PlayCardError::Repository(ReadOnlyPlayerRepository::failure())
     );
 }
