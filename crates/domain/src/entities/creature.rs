@@ -1,59 +1,56 @@
-// A playable unit in the game that can be attacked and deal damage.
+use crate::traits::{CanBeAttacked, HasAttackPower, Targetable};
+use crate::value_objects::{Attack, CardId, Health, Mana};
 
-use crate::value_objects::{CardId, CardType, Health, Mana};// Add other necessary types as needed
-
-/// Represents a creature card in the game.
-#[derive(Debug, Clone)]
+/// A playable unit that occupies the board, can be attacked, and deals damage.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Creature {
-    /// Unique identifier for the creature.
-    pub id: CardId,
-
-    /// The name of the creature.
-    pub name: String,
-
-    /// The current health points of the creature.
-    pub health: Health,
-
-    /// The base attack power of the creature.
-    pub attack_power: u32,
-
-    /// The cost to play this creature (mana).
-    pub mana_cost: Mana,
-
-    /// Whether the creature is immune to damage.
-    pub immune_to_damage: bool,
+    id: CardId,
+    name: String,
+    health: Health,
+    attack: Attack,
+    mana_cost: Mana,
 }
 
 impl Creature {
-    /// Creates a new creature with given properties.
-    pub fn new(id: CardId, name: String, health: Health, attack_power: u32, mana_cost: Mana) -> Self {
+    /// Builds a creature from its identity, vitality, offense, and cost.
+    pub fn new(id: CardId, name: String, health: Health, attack: Attack, mana_cost: Mana) -> Self {
         Self {
             id,
             name,
             health,
-            attack_power,
+            attack,
             mana_cost,
-            immune_to_damage: false,
         }
     }
 
-    /// Returns the current health of the creature.
-    pub fn get_health(&self) -> &Health {
+    /// Returns the identifier distinguishing this creature from every other.
+    pub fn id(&self) -> &CardId {
+        &self.id
+    }
+
+    /// Returns the display name of this creature.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Returns the vitality currently remaining for this creature.
+    pub fn health(&self) -> &Health {
         &self.health
     }
 
-    /// Returns the attack power of the creature.
-    pub fn get_attack_power(&self) -> u32 {
-        self.attack_power
+    /// Returns the offensive power this creature applies when attacking.
+    pub fn attack(&self) -> &Attack {
+        &self.attack
+    }
+
+    /// Returns the mana required to summon this creature.
+    pub fn mana_cost(&self) -> &Mana {
+        &self.mana_cost
     }
 }
 
-// Marker traits for gameplay capabilities
-pub trait CanBeAttacked {}
-pub trait ImmuneToDamage {}
-pub trait HasAttackPower {}
-
-// Implement marker traits
 impl CanBeAttacked for Creature {}
-impl ImmuneToDamage for Creature {}
+
 impl HasAttackPower for Creature {}
+
+impl Targetable for Creature {}
