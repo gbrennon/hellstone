@@ -182,8 +182,8 @@ mod tests {
         );
         assert_eq!(player.hand.len(), STARTING_HAND_SIZE);
         assert_eq!(player.deck.len(), STARTING_DECK_SIZE - STARTING_HAND_SIZE);
-        assert_eq!(player.mana.0, BASE_MAX_MANA);
-        assert_eq!(player.current_mana, 0);
+        assert_eq!(player.mana().current(), BASE_MAX_MANA);
+        assert_eq!(player.current_mana(), BASE_MAX_MANA);
     }
 
     #[test]

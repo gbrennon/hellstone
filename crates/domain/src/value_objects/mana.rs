@@ -76,7 +76,7 @@ mod tests {
 
     #[test]
     fn test_mana_can_spend() {
-        let mut mana = Mana::new(3);
+        let mana = Mana::new(3);
         assert!(mana.can_spend(2));
         assert!(!mana.can_spend(4));
     }
