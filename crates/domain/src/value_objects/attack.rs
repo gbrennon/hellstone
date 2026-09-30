@@ -1,6 +1,3 @@
-// This file was moved from src/domain/value_objects/attack.rs
-// It is now part of the workspace crate.
-
 use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Default)]
@@ -27,7 +24,10 @@ impl Attack {
 
     pub fn set(&mut self, value: u8) -> Result<(), AttackError> {
         if value > Self::MAX_ATTACK {
-            return Err(AttackError::AboveMax { max: Self::MAX_ATTACK, requested: value });
+            return Err(AttackError::AboveMax {
+                max: Self::MAX_ATTACK,
+                requested: value,
+            });
         }
         self.0 = value;
         Ok(())
@@ -36,10 +36,16 @@ impl Attack {
     pub fn modify(&mut self, delta: i16) -> Result<(), AttackError> {
         let new_value = self.0 as i16 + delta;
         if new_value < 0 {
-            return Err(AttackError::AboveMax { max: Self::MAX_ATTACK, requested: 0 });
+            return Err(AttackError::AboveMax {
+                max: Self::MAX_ATTACK,
+                requested: 0,
+            });
         }
         if new_value > Self::MAX_ATTACK as i16 {
-            return Err(AttackError::AboveMax { max: Self::MAX_ATTACK, requested: Self::MAX_ATTACK });
+            return Err(AttackError::AboveMax {
+                max: Self::MAX_ATTACK,
+                requested: Self::MAX_ATTACK,
+            });
         }
         self.0 = new_value as u8;
         Ok(())

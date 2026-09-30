@@ -1,5 +1,3 @@
-// This file defines the Displayable trait used throughout the domain layer.
-
 use std::fmt::Formatter;
 
 /// A trait for objects that can be displayed as text.

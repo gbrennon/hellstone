@@ -1,6 +1,3 @@
-// This file was created as part of the domain crate.
-// It contains repository interfaces for domain entities.
-
 use crate::entities::{Card, Player};
 use crate::value_objects::{CardId, PlayerId};
 use std::fmt;

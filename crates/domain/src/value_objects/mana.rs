@@ -1,6 +1,3 @@
-// This file was moved from src/domain/value_objects/mana.rs
-// It is now part of the workspace crate.
-
 use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -24,7 +21,10 @@ impl Mana {
 
     pub fn spend(&mut self, amount: u8) -> Result<(), ManaError> {
         if !self.can_spend(amount) {
-            return Err(ManaError::InsufficientMana { available: self.0, requested: amount });
+            return Err(ManaError::InsufficientMana {
+                available: self.0,
+                requested: amount,
+            });
         }
         self.0 -= amount;
         Ok(())

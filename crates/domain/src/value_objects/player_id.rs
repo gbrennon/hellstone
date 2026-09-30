@@ -1,6 +1,3 @@
-// This file was moved from src/domain/value_objects/player_id.rs
-// It is now part of the workspace crate.
-
 use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
