@@ -26,17 +26,12 @@ impl Health {
     }
 
     pub fn take_damage(&mut self, damage: u32) -> Result<u32, HealthError> {
-        let mut remaining_damage = damage;
-        while remaining_damage > 0 {
-            match self.0.checked_sub(remaining_damage) {
-                Some(new_value) => {
-                    self.0 = new_value;
-                    remaining_damage = 0;
-                }
-                None => break,
-            }
+        if self.is_dead() {
+            return Err(HealthError::AlreadyDead);
         }
-        Ok(damage)
+        let absorbed_damage = damage.min(self.0);
+        self.0 -= absorbed_damage;
+        Ok(absorbed_damage)
     }
 
     pub fn heal(&mut self, amount: u32) -> Result<u32, HealthError> {

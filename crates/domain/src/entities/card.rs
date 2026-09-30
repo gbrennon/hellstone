@@ -1,5 +1,3 @@
-// This file was moved from src/domain/entities/card.rs
-// It is now part of the workspace crate.
 use crate::traits::{CanBeAttacked, HasAttackPower};
 use crate::value_objects::{Attack, CardId, CardRarity, CardType, Health};
 use std::fmt;
@@ -36,13 +34,10 @@ impl Card {
             return Err(CardError::EmptyName);
         }
 
-        match card_type {
-            CardType::Spell => {
-                if base_attack.is_some() || base_health.is_some() {
-                    return Err(CardError::SpellCannotHaveAttack);
-                }
-            }
-            _ => {}
+        let spell_carries_combat_stats =
+            card_type == CardType::Spell && (base_attack.is_some() || base_health.is_some());
+        if spell_carries_combat_stats {
+            return Err(CardError::SpellCannotHaveAttack);
         }
 
         Ok(Self {
@@ -53,8 +48,8 @@ impl Card {
             rarity,
             base_attack,
             base_health,
-            current_attack: None,
-            current_health: None,
+            current_attack: base_attack,
+            current_health: base_health,
             description: description.to_string(),
             can_attack: true,
             is_sleeping: false,
@@ -85,18 +80,10 @@ impl Card {
     }
 
     pub fn take_damage(&mut self, damage: u32) -> Result<u32, CardError> {
-        let mut remaining_damage = damage;
-        while remaining_damage > 0 {
-            match self.current_health.as_mut() {
-                Some(h) => {
-                    let new_value = h.current().saturating_sub(remaining_damage);
-                    h.set(new_value).map_err(CardError::Health)?;
-                    remaining_damage = 0;
-                }
-                None => break,
-            }
+        match self.current_health.as_mut() {
+            Some(health) => health.take_damage(damage).map_err(CardError::Health),
+            None => Ok(0),
         }
-        Ok(damage)
     }
 
     pub fn wake_up(&mut self) {
@@ -155,7 +142,7 @@ pub enum CardError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::value_objects::{CardId, Health};
+    use crate::value_objects::{CardId, Health};
 
     fn create_minion() -> Card {
         Card::new(
@@ -189,7 +176,7 @@ mod tests {
     fn test_card_take_damage() {
         let mut card = create_minion();
         let damage_taken = card.take_damage(5).unwrap();
-        assert_eq!(damage_taken, 5);
+        assert_eq!(damage_taken, 4);
         assert_eq!(card.current_health().as_ref().unwrap().current(), 0);
     }
 

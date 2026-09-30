@@ -3,7 +3,7 @@
 
 use std::fmt;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Default)]
 pub struct Attack(u8);
 
 impl Attack {
@@ -43,12 +43,6 @@ impl Attack {
         }
         self.0 = new_value as u8;
         Ok(())
-    }
-}
-
-impl Default for Attack {
-    fn default() -> Self {
-        Self(0)
     }
 }
 
