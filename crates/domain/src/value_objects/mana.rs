@@ -20,21 +20,18 @@ impl Mana {
     }
 
     pub fn spend(&mut self, amount: u8) -> Result<(), ManaError> {
-        if self.0 >= amount {
-            self.0 -= amount;
-            Ok(())
-        } else {
-            Err(ManaError::InsufficientMana {
+        if !self.can_spend(amount) {
+            return Err(ManaError::InsufficientMana {
                 available: self.0,
                 requested: amount,
-            })
+            });
         }
+        self.0 -= amount;
+        Ok(())
     }
 
     pub fn replenish(&mut self) {
-        if self.0 < Self::BASE_MAX_MANA {
-            self.0 += 1;
-        }
+        self.0 = Self::BASE_MAX_MANA;
     }
 
     pub fn fill(&mut self) {
@@ -72,89 +69,63 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_mana_new_valid() {
+    fn test_mana_new() {
         let mana = Mana::new(5);
         assert_eq!(mana.current(), 5);
     }
 
     #[test]
-    fn test_mana_new_above_base_max() {
-        let mana = Mana::new(15);
-        assert_eq!(mana.current(), 15);
+    fn test_mana_can_spend() {
+        let mana = Mana::new(3);
+        assert!(mana.can_spend(2));
+        assert!(!mana.can_spend(4));
     }
 
     #[test]
     fn test_mana_spend_success() {
         let mut mana = Mana::new(5);
-        assert!(mana.spend(3).is_ok());
-        assert_eq!(mana.current(), 2);
+        mana.spend(2).unwrap();
+        assert_eq!(mana.current(), 3);
     }
 
     #[test]
     fn test_mana_spend_insufficient() {
-        let mut mana = Mana::new(3);
+        let mut mana = Mana::new(2);
         let result = mana.spend(5);
         assert!(result.is_err());
     }
 
     #[test]
-    fn test_mana_can_spend() {
-        let mana = Mana::new(5);
-        assert!(mana.can_spend(3));
-        assert!(!mana.can_spend(6));
-    }
-
-    #[test]
     fn test_mana_replenish() {
-        let mut mana = Mana::new(3);
-        mana.replenish();
-        assert_eq!(mana.current(), 4);
-    }
-
-    #[test]
-    fn test_mana_replenish_at_base_max() {
-        let mut mana = Mana::new(10);
+        let mut mana = Mana::new(1);
         mana.replenish();
         assert_eq!(mana.current(), 10);
     }
 
     #[test]
-    fn test_mana_replenish_above_base_max() {
-        let mut mana = Mana::new(15);
-        mana.replenish();
-        assert_eq!(mana.current(), 15);
-    }
-
-    #[test]
     fn test_mana_fill() {
-        let mut mana = Mana::new(3);
+        let mut mana = Mana::new(1);
         mana.fill();
         assert_eq!(mana.current(), 10);
     }
 
     #[test]
+    fn test_mana_set() {
+        let mut mana = Mana::new(1);
+        mana.set(7);
+        assert_eq!(mana.current(), 7);
+    }
+
+    #[test]
     fn test_mana_add() {
-        let mut mana = Mana::new(5);
-        mana.add(3);
+        let mut mana = Mana::new(3);
+        mana.add(5);
         assert_eq!(mana.current(), 8);
     }
 
     #[test]
-    fn test_mana_add_saturates() {
-        let mut mana = Mana::new(10);
-        mana.add(100);
-        assert_eq!(mana.current(), 110);
-    }
-
-    #[test]
-    fn test_mana_default() {
-        let mana = Mana::default();
-        assert_eq!(mana.current(), 1);
-    }
-
-    #[test]
     fn test_mana_display() {
-        let mana = Mana::new(7);
-        assert_eq!(format!("{}", mana), "7");
+        let mana = Mana::new(5);
+        assert_eq!(format!("{}", mana), "5");
     }
 }

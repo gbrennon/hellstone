@@ -1,6 +1,18 @@
+[workspace]
+default-members = [
+    ".",
+    "crates/domain",
+    "crates/infrastructure",
+]
+members = [
+    "crates/domain",
+    "crates/infrastructure",
+]
+
 [package]
 name = "hellstone"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+domain = { path = "crates/domain" }

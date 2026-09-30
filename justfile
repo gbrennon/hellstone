@@ -6,7 +6,7 @@ default: fmt-check lint test
 
 # Build the project
 build:
-    cargo build
+    cargo build --workspace
 
 # Run the terminal UI
 # run-tui:
@@ -22,15 +22,15 @@ test:
 
 # Lint (zero warnings enforced)
 lint:
-    cargo clippy -- -D warnings
+    cargo clippy --workspace --all-targets -- -D warnings
 
 # Format all source files
 fmt:
-    cargo fmt
+    cargo fmt --all
 
 # Check formatting without modifying files
 fmt-check:
-    cargo fmt --check
+    cargo fmt --all --check
 
 # Install required dev tools
 tools:

@@ -5,7 +5,7 @@ export PATH="$HOME/.cargo/bin:$PATH"
 
 echo "Running cargo-llvm-cov (generating JSON report)..."
 # Generate JSON + text report; do not fail immediately so we can print friendly summary
-cargo llvm-cov --features test-helpers --ignore-filename-regex "ports/fakes" --json --output-path cov.json || true
+cargo llvm-cov --workspace --ignore-filename-regex "ports/fakes" --json --output-path cov.json || true
 
 if [ ! -f cov.json ]; then
   echo "ERROR: cov.json not found. cargo-llvm-cov failed to produce JSON output."

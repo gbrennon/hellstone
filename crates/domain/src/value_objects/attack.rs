@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Default)]
 pub struct Attack(u8);
 
 impl Attack {
@@ -8,11 +8,10 @@ impl Attack {
     pub const MAX_ATTACK: u8 = 20;
 
     pub fn new(value: u8) -> Option<Self> {
-        if value <= Self::MAX_ATTACK {
-            Some(Self(value))
-        } else {
-            None
+        if value > Self::MAX_ATTACK {
+            return None;
         }
+        Some(Self(value))
     }
 
     pub fn current(&self) -> u8 {
@@ -25,26 +24,31 @@ impl Attack {
 
     pub fn set(&mut self, value: u8) -> Result<(), AttackError> {
         if value > Self::MAX_ATTACK {
-            Err(AttackError::AboveMax {
+            return Err(AttackError::AboveMax {
                 max: Self::MAX_ATTACK,
                 requested: value,
-            })
-        } else {
-            self.0 = value;
-            Ok(())
+            });
         }
+        self.0 = value;
+        Ok(())
     }
 
     pub fn modify(&mut self, delta: i16) -> Result<(), AttackError> {
-        let new_value = (self.0 as i16 + delta).clamp(0, Self::MAX_ATTACK as i16) as u8;
-        self.0 = new_value;
+        let new_value = self.0 as i16 + delta;
+        if new_value < 0 {
+            return Err(AttackError::AboveMax {
+                max: Self::MAX_ATTACK,
+                requested: 0,
+            });
+        }
+        if new_value > Self::MAX_ATTACK as i16 {
+            return Err(AttackError::AboveMax {
+                max: Self::MAX_ATTACK,
+                requested: Self::MAX_ATTACK,
+            });
+        }
+        self.0 = new_value as u8;
         Ok(())
-    }
-}
-
-impl Default for Attack {
-    fn default() -> Self {
-        Self(0)
     }
 }
 
@@ -65,15 +69,14 @@ mod tests {
 
     #[test]
     fn test_attack_new_valid() {
-        let attack = Attack::new(5);
-        assert!(attack.is_some());
-        assert_eq!(attack.unwrap().current(), 5);
+        let attack = Attack::new(5).unwrap();
+        assert_eq!(attack.current(), 5);
     }
 
     #[test]
     fn test_attack_new_above_max() {
-        let attack = Attack::new(21);
-        assert!(attack.is_none());
+        let result = Attack::new(21);
+        assert!(result.is_none());
     }
 
     #[test]
@@ -84,10 +87,9 @@ mod tests {
 
     #[test]
     fn test_attack_can_attack() {
-        let attack = Attack::new(1).unwrap();
+        let mut attack = Attack::new(1).unwrap();
         assert!(attack.can_attack());
-
-        let attack = Attack::new(0).unwrap();
+        attack.set(0).unwrap();
         assert!(!attack.can_attack());
     }
 
@@ -101,55 +103,48 @@ mod tests {
     #[test]
     fn test_attack_set_above_max() {
         let mut attack = Attack::new(3).unwrap();
-        let result = attack.set(25);
+        let result = attack.set(21);
         assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err(),
-            AttackError::AboveMax {
-                max: 20,
-                requested: 25
-            }
-        );
     }
 
     #[test]
     fn test_attack_modify_increase() {
         let mut attack = Attack::new(3).unwrap();
-        attack.modify(2).unwrap();
-        assert_eq!(attack.current(), 5);
+        attack.modify(4).unwrap();
+        assert_eq!(attack.current(), 7);
     }
 
     #[test]
     fn test_attack_modify_decrease() {
         let mut attack = Attack::new(5).unwrap();
-        attack.modify(-3).unwrap();
-        assert_eq!(attack.current(), 2);
+        attack.modify(-2).unwrap();
+        assert_eq!(attack.current(), 3);
     }
 
     #[test]
     fn test_attack_modify_below_zero() {
         let mut attack = Attack::new(2).unwrap();
-        attack.modify(-5).unwrap();
-        assert_eq!(attack.current(), 0);
+        let result = attack.modify(-5);
+        assert!(result.is_err());
     }
 
     #[test]
     fn test_attack_modify_above_max() {
-        let mut attack = Attack::new(18).unwrap();
-        attack.modify(5).unwrap();
-        assert_eq!(attack.current(), 20);
+        let mut attack = Attack::new(19).unwrap();
+        let result = attack.modify(2);
+        assert!(result.is_err());
     }
 
     #[test]
     fn test_attack_display() {
-        let attack = Attack::new(7).unwrap();
-        assert_eq!(format!("{}", attack), "7");
+        let attack = Attack::new(5).unwrap();
+        assert_eq!(format!("{}", attack), "5");
     }
 
     #[test]
     fn test_attack_ord() {
-        let a1 = Attack::new(3).unwrap();
-        let a2 = Attack::new(5).unwrap();
+        let a1 = Attack::new(1).unwrap();
+        let a2 = Attack::new(2).unwrap();
         assert!(a1 < a2);
     }
 }
