@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::domain::value_objects::{Attack, CardId, CardRarity, CardType, Health};
+use super::value_objects::{Attack, CardId, CardRarity, CardType, Health};
 
 #[derive(Debug, Clone)]
 pub struct Card {

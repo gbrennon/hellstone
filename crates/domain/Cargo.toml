@@ -1,0 +1,17 @@
+[package]
+name = "domain"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+proc-macro = false
+
+[dependencies]
+# No external deps needed for domain layer
+
+[dev-dependencies]
+# For testing only
+
+[features]
+# Optional features if needed later
+default = []
